@@ -22,13 +22,15 @@ class _TicTacToePageState extends State<TicTacToePage> {
   List<Move> movesX;
   List<Move> movesO;
   List<List<int>> winningCombination;
+  int moves;
 
   _TicTacToePageState()
       : board = List.generate(3, (_) => List.filled(3, null)),
         currentPlayer = 'X',
         movesX = [],
         movesO = [],
-        winningCombination = [];
+        winningCombination = [],
+        moves = 0;
 
   void _resetGame() {
     setState(() {
@@ -37,6 +39,7 @@ class _TicTacToePageState extends State<TicTacToePage> {
       movesX.clear();
       movesO.clear();
       winningCombination = [];
+      moves = 0;
     });
   }
 
@@ -55,8 +58,10 @@ class _TicTacToePageState extends State<TicTacToePage> {
       board[row][col] = currentPlayer;
       if (currentPlayer == 'X') {
         movesX.add(Move(row, col, currentPlayer));
+        moves++;
       } else {
         movesO.add(Move(row, col, currentPlayer));
+        moves++;
       }
 
       if (_checkWinner(row, col, currentPlayer)) {
@@ -104,7 +109,7 @@ class _TicTacToePageState extends State<TicTacToePage> {
       context: context,
       builder: (_) => AlertDialog(
         title: Text('Gracz $currentPlayer wygrywa!'),
-        content: Text('Liczba ruchów: ${movesX.length + movesO.length + 1}'),
+        content: Text('Liczba ruchów: $moves'),
         actions: [
           TextButton(
             onPressed: () {
