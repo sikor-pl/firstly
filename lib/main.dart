@@ -23,9 +23,13 @@ class _TicTacToePageState extends State<TicTacToePage> {
   List<Move> movesO;
   List<List<int>> winningCombination;
   int moves;
+  int boardSize;
+  int movesLimit;
 
   _TicTacToePageState()
-      : board = List.generate(3, (_) => List.filled(3, null)),
+      : boardSize = 3,
+        movesLimit = 3,
+        board = List.generate(3, (_) => List.filled(3, null)),
         currentPlayer = 'X',
         movesX = [],
         movesO = [],
@@ -34,7 +38,7 @@ class _TicTacToePageState extends State<TicTacToePage> {
 
   void _resetGame() {
     setState(() {
-      board = List.generate(3, (_) => List.filled(3, null));
+      board = List.generate(boardSize, (_) => List.filled(boardSize, null));
       currentPlayer = 'X';
       movesX.clear();
       movesO.clear();
@@ -47,10 +51,10 @@ class _TicTacToePageState extends State<TicTacToePage> {
     if (board[row][col] != null || winningCombination.isNotEmpty) return;
 
     setState(() {
-      if (currentPlayer == 'X' && movesX.length == 3) {
+      if (currentPlayer == 'X' && movesX.length == movesLimit) {
         final oldestMove = movesX.removeAt(0);
         board[oldestMove.row][oldestMove.col] = null;
-      } else if (currentPlayer == 'O' && movesO.length == 3) {
+      } else if (currentPlayer == 'O' && movesO.length == movesLimit) {
         final oldestMove = movesO.removeAt(0);
         board[oldestMove.row][oldestMove.col] = null;
       }
@@ -75,29 +79,30 @@ class _TicTacToePageState extends State<TicTacToePage> {
   bool _checkWinner(int row, int col, String player) {
     // Check row
     if (board[row].every((cell) => cell == player)) {
-      winningCombination = List.generate(3, (index) => [row, index]);
+      winningCombination = List.generate(boardSize, (index) => [row, index]);
       return true;
     }
 
     // Check column
     if (board.every((r) => r[col] == player)) {
-      winningCombination = List.generate(3, (index) => [index, col]);
+      winningCombination = List.generate(boardSize, (index) => [index, col]);
       return true;
     }
 
     // Check diagonal
     if (row == col &&
-        List.generate(3, (index) => board[index][index])
+        List.generate(boardSize, (index) => board[index][index])
             .every((cell) => cell == player)) {
-      winningCombination = List.generate(3, (index) => [index, index]);
+      winningCombination = List.generate(boardSize, (index) => [index, index]);
       return true;
     }
 
     // Check anti-diagonal
-    if (row + col == 2 &&
-        List.generate(3, (index) => board[index][2 - index])
+    if (row + col == boardSize - 1 &&
+        List.generate(boardSize, (index) => board[index][boardSize - 1 - index])
             .every((cell) => cell == player)) {
-      winningCombination = List.generate(3, (index) => [index, 2 - index]);
+      winningCombination =
+          List.generate(boardSize, (index) => [index, boardSize - 1 - index]);
       return true;
     }
 
@@ -123,6 +128,78 @@ class _TicTacToePageState extends State<TicTacToePage> {
     );
   }
 
+  void _showSettingsDialog() {
+    int tempBoardSize = boardSize;
+    int tempMovesLimit = movesLimit;
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Ustawienia'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Text('Rozmiar planszy:'),
+                  SizedBox(width: 10),
+                  DropdownButton<int>(
+                    value: tempBoardSize,
+                    items: [3, 5, 7].map((int value) {
+                      return DropdownMenuItem<int>(
+                        value: value,
+                        child: Text(value.toString()),
+                      );
+                    }).toList(),
+                    onChanged: (int? newValue) {
+                      setState(() {
+                        tempBoardSize = newValue!;
+                      });
+                    },
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Text('Liczba ruchów:'),
+                  SizedBox(width: 10),
+                  DropdownButton<int>(
+                    value: tempMovesLimit,
+                    items: List.generate(tempBoardSize, (index) => index + 1)
+                        .map((int value) {
+                      return DropdownMenuItem<int>(
+                        value: value,
+                        child: Text(value.toString()),
+                      );
+                    }).toList(),
+                    onChanged: (int? newValue) {
+                      setState(() {
+                        tempMovesLimit = newValue!;
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                setState(() {
+                  boardSize = tempBoardSize;
+                  movesLimit = tempMovesLimit;
+                  _resetGame();
+                });
+              },
+              child: Text('Zastosuj'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -132,6 +209,10 @@ class _TicTacToePageState extends State<TicTacToePage> {
           IconButton(
             icon: Icon(Icons.refresh),
             onPressed: _resetGame,
+          ),
+          IconButton(
+            icon: Icon(Icons.settings),
+            onPressed: _showSettingsDialog,
           ),
         ],
       ),
@@ -150,16 +231,16 @@ class _TicTacToePageState extends State<TicTacToePage> {
                 aspectRatio: 1,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(3, (row) {
+                  children: List.generate(boardSize, (row) {
                     return Expanded(
                       child: Row(
-                        children: List.generate(3, (col) {
+                        children: List.generate(boardSize, (col) {
                           bool isOldestX = currentPlayer == 'X' &&
-                              movesX.length == 3 &&
+                              movesX.length == movesLimit &&
                               movesX.first.row == row &&
                               movesX.first.col == col;
                           bool isOldestO = currentPlayer == 'O' &&
-                              movesO.length == 3 &&
+                              movesO.length == movesLimit &&
                               movesO.first.row == row &&
                               movesO.first.col == col;
                           bool isWinning = winningCombination
