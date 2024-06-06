@@ -130,58 +130,73 @@ class _TicTacToePageState extends State<TicTacToePage> {
           ),
         ],
       ),
-      body: Center(
-        child: AspectRatio(
-          aspectRatio: 1,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(3, (row) {
-              return Expanded(
-                child: Row(
-                  children: List.generate(3, (col) {
-                    bool isOldestX = currentPlayer == 'X' &&
-                        movesX.length == 3 &&
-                        movesX.first.row == row &&
-                        movesX.first.col == col;
-                    bool isOldestO = currentPlayer == 'O' &&
-                        movesO.length == 3 &&
-                        movesO.first.row == row &&
-                        movesO.first.col == col;
-                    bool isWinning = winningCombination
-                        .any((pos) => pos[0] == row && pos[1] == col);
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              'Ruch gracza: $currentPlayer',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+          ),
+          Expanded(
+            child: Center(
+              child: AspectRatio(
+                aspectRatio: 1,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(3, (row) {
                     return Expanded(
-                      child: AspectRatio(
-                        aspectRatio: 1,
-                        child: Container(
-                          margin: EdgeInsets.all(4.0),
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: isWinning
-                                  ? Colors.green
-                                  : board[row][col] != null
-                                      ? (isOldestX || isOldestO)
-                                          ? Colors.red
-                                          : Colors.blue
-                                      : Colors.grey,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8.0),
+                      child: Row(
+                        children: List.generate(3, (col) {
+                          bool isOldestX = currentPlayer == 'X' &&
+                              movesX.length == 3 &&
+                              movesX.first.row == row &&
+                              movesX.first.col == col;
+                          bool isOldestO = currentPlayer == 'O' &&
+                              movesO.length == 3 &&
+                              movesO.first.row == row &&
+                              movesO.first.col == col;
+                          bool isWinning = winningCombination
+                              .any((pos) => pos[0] == row && pos[1] == col);
+                          return Expanded(
+                            child: AspectRatio(
+                              aspectRatio: 1,
+                              child: Container(
+                                margin: EdgeInsets.all(4.0),
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: isWinning
+                                        ? Colors.green
+                                        : board[row][col] != null
+                                            ? (isOldestX || isOldestO)
+                                                ? Colors.red
+                                                : Colors.blue
+                                            : Colors.grey,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    board[row][col] != null
+                                        ? board[row][col]!
+                                        : '',
+                                    style: TextStyle(fontSize: 32.0),
+                                  ),
+                                  onPressed: () => _makeMove(row, col),
+                                ),
                               ),
                             ),
-                            child: Text(
-                              board[row][col] != null ? board[row][col]! : '',
-                              style: TextStyle(fontSize: 32.0),
-                            ),
-                            onPressed: () => _makeMove(row, col),
-                          ),
-                        ),
+                          );
+                        }),
                       ),
                     );
                   }),
                 ),
-              );
-            }),
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
