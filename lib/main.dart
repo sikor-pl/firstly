@@ -47,7 +47,9 @@ class _TicTacToePageState extends State<TicTacToePage> {
   void _resetGame() {
     setState(() {
       board = List.generate(boardSize, (_) => List.filled(boardSize, null));
-      currentPlayer = 'X';
+      currentPlayer = cpuFirst
+          ? 'O'
+          : 'X'; // Ustawienie currentPlayer na O jeśli CPU ma zacząć
       movesX.clear();
       movesO.clear();
       winningCombination = [];
@@ -137,7 +139,8 @@ class _TicTacToePageState extends State<TicTacToePage> {
                     ),
                   Row(
                     children: [
-                      Text('Tryb gry:'),
+                      Text('Gra z CPU:'), // Zmieniona etykieta
+                      Spacer(), // Dodanie przerwy między etykietą a przełącznikiem
                       Switch(
                         value: tempVsCPU,
                         onChanged: (newValue) {
@@ -152,6 +155,7 @@ class _TicTacToePageState extends State<TicTacToePage> {
                     Row(
                       children: [
                         Text('CPU zaczyna:'),
+                        Spacer(), // Dodanie przerwy między etykietą a przełącznikiem
                         Switch(
                           value: tempCpuFirst,
                           onChanged: (newValue) {
@@ -313,7 +317,7 @@ class _TicTacToePageState extends State<TicTacToePage> {
   }
 
   void _makeCPUMove() {
-    Future.delayed(Duration(seconds: 1), () {
+    Future.delayed(Duration(seconds: 2), () {
       if (winningCombination.isNotEmpty) return;
 
       int bestScore = -1000;
@@ -421,7 +425,7 @@ class _TicTacToePageState extends State<TicTacToePage> {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Text(
-              'Ruch gracza: $currentPlayer',
+              '${currentPlayer == 'O' && vsCPU ? 'Ruch komputera' : 'Ruch gracza'}: $currentPlayer',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
           ),
