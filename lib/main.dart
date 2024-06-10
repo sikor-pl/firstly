@@ -56,92 +56,97 @@ class _TicTacToePageState extends State<TicTacToePage> {
         int tempBoardSize = boardSize;
         int tempWinCondition = winCondition;
         int tempMaxMovesBeforeDisappear = maxMovesBeforeDisappear;
-        return AlertDialog(
-          title: Text('Ustawienia'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              DropdownButton<int>(
-                value: tempBoardSize,
-                items: [3, 4, 5].map((int value) {
-                  return DropdownMenuItem<int>(
-                    value: value,
-                    child: Text('$value x $value'),
-                  );
-                }).toList(),
-                onChanged: (newValue) {
-                  setState(() {
-                    tempBoardSize = newValue!;
-                    if (tempBoardSize == 3) {
-                      tempWinCondition = 3;
-                      tempMaxMovesBeforeDisappear = 3;
-                    } else if (tempBoardSize == 4) {
-                      if (tempWinCondition > 4) tempWinCondition = 4;
-                      if (tempMaxMovesBeforeDisappear > 6)
-                        tempMaxMovesBeforeDisappear = 6;
-                    } else if (tempBoardSize == 5) {
-                      if (tempWinCondition > 5) tempWinCondition = 5;
-                      if (tempMaxMovesBeforeDisappear > 8)
-                        tempMaxMovesBeforeDisappear = 8;
-                    }
-                  });
-                },
-              ),
-              if (tempBoardSize > 3)
-                DropdownButton<int>(
-                  value: tempWinCondition,
-                  items: List.generate(tempBoardSize - 2, (index) => index + 3)
-                      .map((int value) {
-                    return DropdownMenuItem<int>(
-                      value: value,
-                      child: Text('$value w rzędzie'),
-                    );
-                  }).toList(),
-                  onChanged: (newValue) {
-                    setState(() {
-                      tempWinCondition = newValue!;
-                    });
-                  },
-                ),
-              if (tempBoardSize > 3)
-                DropdownButton<int>(
-                  value: tempMaxMovesBeforeDisappear,
-                  items:
-                      List.generate(tempBoardSize * 2 - 2, (index) => index + 3)
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return AlertDialog(
+              title: Text('Ustawienia'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DropdownButton<int>(
+                    value: tempBoardSize,
+                    items: [3, 4, 5].map((int value) {
+                      return DropdownMenuItem<int>(
+                        value: value,
+                        child: Text('$value x $value'),
+                      );
+                    }).toList(),
+                    onChanged: (newValue) {
+                      setState(() {
+                        tempBoardSize = newValue!;
+                        if (tempBoardSize == 3) {
+                          tempWinCondition = 3;
+                          tempMaxMovesBeforeDisappear = 3;
+                        } else if (tempBoardSize == 4) {
+                          if (tempWinCondition > 4) tempWinCondition = 4;
+                          if (tempMaxMovesBeforeDisappear > 6)
+                            tempMaxMovesBeforeDisappear = 6;
+                        } else if (tempBoardSize == 5) {
+                          if (tempWinCondition > 5) tempWinCondition = 5;
+                          if (tempMaxMovesBeforeDisappear > 8)
+                            tempMaxMovesBeforeDisappear = 8;
+                        }
+                      });
+                    },
+                  ),
+                  if (tempBoardSize > 3)
+                    DropdownButton<int>(
+                      value: tempWinCondition,
+                      items:
+                          List.generate(tempBoardSize - 2, (index) => index + 3)
+                              .map((int value) {
+                        return DropdownMenuItem<int>(
+                          value: value,
+                          child: Text('$value w rzędzie'),
+                        );
+                      }).toList(),
+                      onChanged: (newValue) {
+                        setState(() {
+                          tempWinCondition = newValue!;
+                        });
+                      },
+                    ),
+                  if (tempBoardSize > 3)
+                    DropdownButton<int>(
+                      value: tempMaxMovesBeforeDisappear,
+                      items: List.generate(
+                              tempBoardSize * 2 - 2, (index) => index + 3)
                           .map((int value) {
-                    return DropdownMenuItem<int>(
-                      value: value,
-                      child: Text('$value ruchów do znikania'),
-                    );
-                  }).toList(),
-                  onChanged: (newValue) {
+                        return DropdownMenuItem<int>(
+                          value: value,
+                          child: Text('$value ruchów do znikania'),
+                        );
+                      }).toList(),
+                      onChanged: (newValue) {
+                        setState(() {
+                          tempMaxMovesBeforeDisappear = newValue!;
+                        });
+                      },
+                    ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
                     setState(() {
-                      tempMaxMovesBeforeDisappear = newValue!;
+                      boardSize = tempBoardSize;
+                      winCondition = tempWinCondition;
+                      maxMovesBeforeDisappear = tempMaxMovesBeforeDisappear;
+                      _resetGame();
                     });
+                    Navigator.of(context).pop();
                   },
+                  child: Text('Zapisz'),
                 ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  boardSize = tempBoardSize;
-                  winCondition = tempWinCondition;
-                  maxMovesBeforeDisappear = tempMaxMovesBeforeDisappear;
-                  _resetGame();
-                });
-                Navigator.of(context).pop();
-              },
-              child: Text('Zapisz'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Anuluj'),
-            ),
-          ],
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('Anuluj'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
