@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
+import 'dart:math';
 
 void main() => runApp(TicTacToeApp());
 
@@ -26,6 +28,8 @@ class _TicTacToePageState extends State<TicTacToePage> {
   int boardSize;
   int winCondition;
   int maxMovesBeforeDisappear;
+  bool vsCPU;
+  bool cpuFirst;
 
   _TicTacToePageState()
       : boardSize = 3,
@@ -36,7 +40,9 @@ class _TicTacToePageState extends State<TicTacToePage> {
         movesX = [],
         movesO = [],
         winningCombination = [],
-        moves = 0;
+        moves = 0,
+        vsCPU = false,
+        cpuFirst = false;
 
   void _resetGame() {
     setState(() {
@@ -46,6 +52,9 @@ class _TicTacToePageState extends State<TicTacToePage> {
       movesO.clear();
       winningCombination = [];
       moves = 0;
+      if (vsCPU && cpuFirst) {
+        _makeCPUMove();
+      }
     });
   }
 
@@ -56,6 +65,9 @@ class _TicTacToePageState extends State<TicTacToePage> {
         int tempBoardSize = boardSize;
         int tempWinCondition = winCondition;
         int tempMaxMovesBeforeDisappear = maxMovesBeforeDisappear;
+        bool tempVsCPU = vsCPU;
+        bool tempCpuFirst = cpuFirst;
+
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
             return AlertDialog(
@@ -123,6 +135,33 @@ class _TicTacToePageState extends State<TicTacToePage> {
                         });
                       },
                     ),
+                  Row(
+                    children: [
+                      Text('Tryb gry:'),
+                      Switch(
+                        value: tempVsCPU,
+                        onChanged: (newValue) {
+                          setState(() {
+                            tempVsCPU = newValue;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                  if (tempVsCPU)
+                    Row(
+                      children: [
+                        Text('CPU zaczyna:'),
+                        Switch(
+                          value: tempCpuFirst,
+                          onChanged: (newValue) {
+                            setState(() {
+                              tempCpuFirst = newValue;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
                 ],
               ),
               actions: [
@@ -132,6 +171,8 @@ class _TicTacToePageState extends State<TicTacToePage> {
                       boardSize = tempBoardSize;
                       winCondition = tempWinCondition;
                       maxMovesBeforeDisappear = tempMaxMovesBeforeDisappear;
+                      vsCPU = tempVsCPU;
+                      cpuFirst = tempCpuFirst;
                       _resetGame();
                     });
                     Navigator.of(context).pop();
@@ -178,6 +219,9 @@ class _TicTacToePageState extends State<TicTacToePage> {
         _showWinnerDialog();
       } else {
         currentPlayer = currentPlayer == 'X' ? 'O' : 'X';
+        if (vsCPU && currentPlayer == 'O') {
+          _makeCPUMove();
+        }
       }
     });
   }
@@ -266,6 +310,94 @@ class _TicTacToePageState extends State<TicTacToePage> {
         ],
       ),
     );
+  }
+
+  void _makeCPUMove() {
+    Future.delayed(Duration(seconds: 1), () {
+      if (winningCombination.isNotEmpty) return;
+
+      int bestScore = -1000;
+      int moveRow = -1;
+      int moveCol = -1;
+
+      for (int i = 0; i < boardSize; i++) {
+        for (int j = 0; j < boardSize; j++) {
+          if (board[i][j] == null) {
+            board[i][j] = 'O';
+            int score = _minimax(board, 0, false);
+            board[i][j] = null;
+            if (score > bestScore) {
+              bestScore = score;
+              moveRow = i;
+              moveCol = j;
+            }
+          }
+        }
+      }
+
+      _makeMove(moveRow, moveCol);
+    });
+  }
+
+  int _minimax(List<List<String?>> board, int depth, bool isMaximizing) {
+    if (_checkWinnerHelper('O')) return 10 - depth;
+    if (_checkWinnerHelper('X')) return depth - 10;
+    if (board.every((row) => row.every((cell) => cell != null))) return 0;
+
+    if (isMaximizing) {
+      int bestScore = -1000;
+      for (int i = 0; i < boardSize; i++) {
+        for (int j = 0; j < boardSize; j++) {
+          if (board[i][j] == null) {
+            board[i][j] = 'O';
+            int score = _minimax(board, depth + 1, false);
+            board[i][j] = null;
+            bestScore = max(score, bestScore);
+          }
+        }
+      }
+      return bestScore;
+    } else {
+      int bestScore = 1000;
+      for (int i = 0; i < boardSize; i++) {
+        for (int j = 0; j < boardSize; j++) {
+          if (board[i][j] == null) {
+            board[i][j] = 'X';
+            int score = _minimax(board, depth + 1, true);
+            board[i][j] = null;
+            bestScore = min(score, bestScore);
+          }
+        }
+      }
+      return bestScore;
+    }
+  }
+
+  bool _checkWinnerHelper(String player) {
+    for (int i = 0; i < boardSize; i++) {
+      for (int j = 0; j < boardSize; j++) {
+        if (board[i][j] == player &&
+            ((i + winCondition <= boardSize &&
+                    List.generate(winCondition, (index) => board[i + index][j])
+                        .every((cell) => cell == player)) ||
+                (j + winCondition <= boardSize &&
+                    List.generate(winCondition, (index) => board[i][j + index])
+                        .every((cell) => cell == player)) ||
+                (i + winCondition <= boardSize &&
+                    j + winCondition <= boardSize &&
+                    List.generate(
+                            winCondition, (index) => board[i + index][j + index])
+                        .every((cell) => cell == player)) ||
+                (i + winCondition <= boardSize &&
+                    j - winCondition + 1 >= 0 &&
+                    List.generate(winCondition,
+                            (index) => board[i + index][j - index])
+                        .every((cell) => cell == player)))) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   @override
