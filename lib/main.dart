@@ -30,6 +30,8 @@ class _TicTacToePageState extends State<TicTacToePage> {
   int maxMovesBeforeDisappear;
   bool vsCPU;
   bool cpuFirst;
+  int maxDepth;
+  int cpuDifficulty; // 0 for easy, 1 for hard
 
   _TicTacToePageState()
       : boardSize = 3,
@@ -42,14 +44,14 @@ class _TicTacToePageState extends State<TicTacToePage> {
         winningCombination = [],
         moves = 0,
         vsCPU = false,
-        cpuFirst = false;
+        cpuFirst = false,
+        maxDepth = 5,
+        cpuDifficulty = 0;
 
   void _resetGame() {
     setState(() {
       board = List.generate(boardSize, (_) => List.filled(boardSize, null));
-      currentPlayer = cpuFirst
-          ? 'O'
-          : 'X'; // Ustawienie currentPlayer na O jeśli CPU ma zacząć
+      currentPlayer = cpuFirst ? 'O' : 'X';
       movesX.clear();
       movesO.clear();
       winningCombination = [];
@@ -69,6 +71,7 @@ class _TicTacToePageState extends State<TicTacToePage> {
         int tempMaxMovesBeforeDisappear = maxMovesBeforeDisappear;
         bool tempVsCPU = vsCPU;
         bool tempCpuFirst = cpuFirst;
+        int tempCpuDifficulty = cpuDifficulty;
 
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
@@ -139,8 +142,8 @@ class _TicTacToePageState extends State<TicTacToePage> {
                     ),
                   Row(
                     children: [
-                      Text('Gra z CPU:'), // Zmieniona etykieta
-                      Spacer(), // Dodanie przerwy między etykietą a przełącznikiem
+                      Text('Gra z CPU:'),
+                      Spacer(),
                       Switch(
                         value: tempVsCPU,
                         onChanged: (newValue) {
@@ -155,12 +158,37 @@ class _TicTacToePageState extends State<TicTacToePage> {
                     Row(
                       children: [
                         Text('CPU zaczyna:'),
-                        Spacer(), // Dodanie przerwy między etykietą a przełącznikiem
+                        Spacer(),
                         Switch(
                           value: tempCpuFirst,
                           onChanged: (newValue) {
                             setState(() {
                               tempCpuFirst = newValue;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  if (tempVsCPU)
+                    Row(
+                      children: [
+                        Text('Poziom trudności CPU:'),
+                        Spacer(),
+                        DropdownButton<int>(
+                          value: tempCpuDifficulty,
+                          items: [
+                            DropdownMenuItem<int>(
+                              value: 0,
+                              child: Text('Łatwy'),
+                            ),
+                            DropdownMenuItem<int>(
+                              value: 1,
+                              child: Text('Trudny'),
+                            ),
+                          ],
+                          onChanged: (newValue) {
+                            setState(() {
+                              tempCpuDifficulty = newValue!;
                             });
                           },
                         ),
@@ -177,6 +205,12 @@ class _TicTacToePageState extends State<TicTacToePage> {
                       maxMovesBeforeDisappear = tempMaxMovesBeforeDisappear;
                       vsCPU = tempVsCPU;
                       cpuFirst = tempCpuFirst;
+                      cpuDifficulty = tempCpuDifficulty;
+                      if (cpuDifficulty == 0) {
+                        maxDepth = 3; // Easy mode
+                      } else {
+                        maxDepth = 5; // Hard mode
+                      }
                       _resetGame();
                     });
                     Navigator.of(context).pop();
@@ -196,6 +230,8 @@ class _TicTacToePageState extends State<TicTacToePage> {
       },
     );
   }
+
+  // Remainder of the code...
 
   void _makeMove(int row, int col) {
     if (board[row][col] != null || winningCombination.isNotEmpty) return;
@@ -317,13 +353,12 @@ class _TicTacToePageState extends State<TicTacToePage> {
   }
 
   void _makeCPUMove() {
-    Future.delayed(Duration(seconds: 2), () {
+    Future.delayed(Duration(seconds: 1), () {
       if (winningCombination.isNotEmpty) return;
 
       int bestScore = -1000;
       int moveRow = -1;
       int moveCol = -1;
-
       for (int i = 0; i < boardSize; i++) {
         for (int j = 0; j < boardSize; j++) {
           if (board[i][j] == null) {
@@ -346,7 +381,8 @@ class _TicTacToePageState extends State<TicTacToePage> {
   int _minimax(List<List<String?>> board, int depth, bool isMaximizing) {
     if (_checkWinnerHelper('O')) return 10 - depth;
     if (_checkWinnerHelper('X')) return depth - 10;
-    if (board.every((row) => row.every((cell) => cell != null))) return 0;
+    if (board.every((row) => row.every((cell) => cell != null)) ||
+        depth >= maxDepth) return 0;
 
     if (isMaximizing) {
       int bestScore = -1000;
