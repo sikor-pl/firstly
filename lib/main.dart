@@ -206,10 +206,18 @@ class _TicTacToePageState extends State<TicTacToePage> {
                       vsCPU = tempVsCPU;
                       cpuFirst = tempCpuFirst;
                       cpuDifficulty = tempCpuDifficulty;
-                      if (cpuDifficulty == 0) {
-                        maxDepth = 3; // Easy mode
+                      if (boardSize == 5) {
+                        if (cpuDifficulty == 0) {
+                          maxDepth = 2; // Easy mode
+                        } else {
+                          maxDepth = 4; // Hard mode
+                        }
                       } else {
-                        maxDepth = 5; // Hard mode
+                        if (cpuDifficulty == 0) {
+                          maxDepth = 3; // Easy mode
+                        } else {
+                          maxDepth = 5; // Hard mode
+                        }
                       }
                       _resetGame();
                     });
@@ -509,7 +517,17 @@ class _TicTacToePageState extends State<TicTacToePage> {
                                         : '',
                                     style: TextStyle(fontSize: 32.0),
                                   ),
-                                  onPressed: () => _makeMove(row, col),
+                                  onPressed: () {
+                                    if (!vsCPU ||
+                                        (vsCPU &&
+                                            cpuFirst &&
+                                            currentPlayer == '0') ||
+                                        (vsCPU &&
+                                            !cpuFirst &&
+                                            currentPlayer == 'X')) {
+                                      _makeMove(row, col);
+                                    }
+                                  },
                                 ),
                               ),
                             ),
