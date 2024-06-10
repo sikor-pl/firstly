@@ -519,12 +519,7 @@ class _TicTacToePageState extends State<TicTacToePage> {
                                   ),
                                   onPressed: () {
                                     if (!vsCPU ||
-                                        (vsCPU &&
-                                            cpuFirst &&
-                                            currentPlayer == '0') ||
-                                        (vsCPU &&
-                                            !cpuFirst &&
-                                            currentPlayer == 'X')) {
+                                        (vsCPU && currentPlayer == 'X')) {
                                       _makeMove(row, col);
                                     }
                                   },
