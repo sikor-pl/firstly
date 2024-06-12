@@ -352,7 +352,9 @@ class _TicTacToePageState extends State<TicTacToePage> {
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
-              _resetGame();
+              Future.delayed(Duration(seconds: 2), () {
+                _resetGame(); // Odczekaj 2 sekundy, a następnie wywołaj _resetGame
+              });
             },
             child: Text('Nowa gra'),
           ),
