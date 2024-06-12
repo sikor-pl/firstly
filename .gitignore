@@ -42,6 +42,5 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# pomiń
-!build/web
-!build/web/**
+
+
