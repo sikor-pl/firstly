@@ -239,8 +239,6 @@ class _TicTacToePageState extends State<TicTacToePage> {
     );
   }
 
-  // Remainder of the code...
-
   void _makeMove(int row, int col) {
     if (board[row][col] != null || winningCombination.isNotEmpty) return;
 
@@ -365,8 +363,8 @@ class _TicTacToePageState extends State<TicTacToePage> {
       if (winningCombination.isNotEmpty) return;
 
       int bestScore = -1000;
-      int moveRow = -1;
-      int moveCol = -1;
+      List<Map<String, int>> bestMoves = [];
+
       for (int i = 0; i < boardSize; i++) {
         for (int j = 0; j < boardSize; j++) {
           if (board[i][j] == null) {
@@ -375,14 +373,27 @@ class _TicTacToePageState extends State<TicTacToePage> {
             board[i][j] = null;
             if (score > bestScore) {
               bestScore = score;
-              moveRow = i;
-              moveCol = j;
+              bestMoves = [
+                {'row': i, 'col': j, 'score': score}
+              ];
+            } else if (score == bestScore) {
+              bestMoves.add({'row': i, 'col': j, 'score': score});
             }
           }
         }
       }
 
-      _makeMove(moveRow, moveCol);
+      // Sort the best moves by score and keep only the top 3
+      bestMoves.sort((a, b) => b['score']!.compareTo(a['score']!));
+      if (bestMoves.length > 3) {
+        bestMoves = bestMoves.sublist(0, 3);
+      }
+
+      // Choose a random move from the top 3
+      var random = Random();
+      var chosenMove = bestMoves[random.nextInt(bestMoves.length)];
+
+      _makeMove(chosenMove['row']!, chosenMove['col']!);
     });
   }
 
