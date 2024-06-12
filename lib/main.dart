@@ -201,7 +201,7 @@ class _TicTacToePageState extends State<TicTacToePage> {
                     ),
                   Row(
                     children: [
-                      Text('Widać dwa najstarsze i przeciwnika:'),
+                      Text('Więcej podpowiedzi:'),
                       Spacer(),
                       Switch(
                         value: tempTwoOldestMoves,
@@ -409,10 +409,10 @@ class _TicTacToePageState extends State<TicTacToePage> {
         }
       }
 
-      // Sort the best moves by score and keep only the top 3
+      // Sort the best moves by score and keep only the top 2
       bestMoves.sort((a, b) => b['score']!.compareTo(a['score']!));
-      if (bestMoves.length > 3) {
-        bestMoves = bestMoves.sublist(0, 3);
+      if (bestMoves.length > 2) {
+        bestMoves = bestMoves.sublist(0, 2);
       }
 
       // Choose a random move from the top 3
