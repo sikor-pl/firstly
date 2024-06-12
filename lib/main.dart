@@ -35,6 +35,7 @@ class _TicTacToePageState extends State<TicTacToePage> {
   int maxDepth;
   int cpuDifficulty; // 0 for easy, 1 for hard
   bool _isCPUMoving = false;
+  bool _twoOldestMoves = false;
 
   _TicTacToePageState()
       : boardSize = 3,
@@ -75,6 +76,7 @@ class _TicTacToePageState extends State<TicTacToePage> {
         bool tempVsCPU = vsCPU;
         bool tempCpuFirst = cpuFirst;
         int tempCpuDifficulty = cpuDifficulty;
+        bool tempTwoOldestMoves = _twoOldestMoves;
 
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
@@ -197,6 +199,20 @@ class _TicTacToePageState extends State<TicTacToePage> {
                         ),
                       ],
                     ),
+                  Row(
+                    children: [
+                      Text('Widać dwa najstarsze i przeciwnika:'),
+                      Spacer(),
+                      Switch(
+                        value: tempTwoOldestMoves,
+                        onChanged: (newValue) {
+                          setState(() {
+                            tempTwoOldestMoves = newValue;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
                 ],
               ),
               actions: [
@@ -209,6 +225,7 @@ class _TicTacToePageState extends State<TicTacToePage> {
                       vsCPU = tempVsCPU;
                       cpuFirst = tempCpuFirst;
                       cpuDifficulty = tempCpuDifficulty;
+                      _twoOldestMoves = tempTwoOldestMoves;
                       if (boardSize == 5) {
                         if (cpuDifficulty == 0) {
                           maxDepth = 2; // Easy mode
@@ -510,14 +527,32 @@ class _TicTacToePageState extends State<TicTacToePage> {
                         return Expanded(
                           child: Row(
                             children: List.generate(boardSize, (col) {
-                              bool isOldestX = currentPlayer == 'X' &&
+                              bool isOldestX =
                                   movesX.length == maxMovesBeforeDisappear &&
-                                  movesX.first.row == row &&
-                                  movesX.first.col == col;
-                              bool isOldestO = currentPlayer == 'O' &&
+                                      movesX.first.row == row &&
+                                      movesX.first.col == col;
+                              bool isSecoundOldestX = !isOldestX &&
+                                  ((movesX.length >
+                                              maxMovesBeforeDisappear - 1 &&
+                                          movesX.elementAt(1).row == row &&
+                                          movesX.elementAt(1).col == col) ||
+                                      (movesX.length >
+                                              maxMovesBeforeDisappear - 2 &&
+                                          movesX.elementAt(0).row == row &&
+                                          movesX.elementAt(0).col == col));
+                              bool isOldestO =
                                   movesO.length == maxMovesBeforeDisappear &&
-                                  movesO.first.row == row &&
-                                  movesO.first.col == col;
+                                      movesO.first.row == row &&
+                                      movesO.first.col == col;
+                              bool isSecoundOldestO = !isOldestO &&
+                                  ((movesO.length >
+                                              maxMovesBeforeDisappear - 1 &&
+                                          movesO.elementAt(1).row == row &&
+                                          movesO.elementAt(1).col == col) ||
+                                      (movesO.length >
+                                              maxMovesBeforeDisappear - 2 &&
+                                          movesO.elementAt(0).row == row &&
+                                          movesO.elementAt(0).col == col));
                               bool isWinning = winningCombination
                                   .any((pos) => pos[0] == row && pos[1] == col);
                               return Expanded(
@@ -529,11 +564,24 @@ class _TicTacToePageState extends State<TicTacToePage> {
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: isWinning
                                             ? Colors.green
-                                            : board[row][col] != null
-                                                ? (isOldestX || isOldestO)
+                                            : board[row][col] == null
+                                                ? Colors.grey
+                                                : (_twoOldestMoves &&
+                                                        (isSecoundOldestX ||
+                                                            isSecoundOldestO))
                                                     ? Colors.red
-                                                    : Colors.blue
-                                                : Colors.grey,
+                                                        .withOpacity(0.5)
+                                                    : ((_twoOldestMoves &&
+                                                                (isOldestX ||
+                                                                    isOldestO) ||
+                                                            (currentPlayer ==
+                                                                    'X' &&
+                                                                isOldestX) ||
+                                                            (currentPlayer ==
+                                                                    'O' &&
+                                                                isOldestO)))
+                                                        ? Colors.red
+                                                        : Colors.blue,
                                         shape: RoundedRectangleBorder(
                                           borderRadius:
                                               BorderRadius.circular(8.0),
