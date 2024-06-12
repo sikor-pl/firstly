@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math';
 
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+
 void main() => runApp(TicTacToeApp());
 
 class TicTacToeApp extends StatelessWidget {
@@ -32,6 +34,7 @@ class _TicTacToePageState extends State<TicTacToePage> {
   bool cpuFirst;
   int maxDepth;
   int cpuDifficulty; // 0 for easy, 1 for hard
+  bool _isCPUMoving = false;
 
   _TicTacToePageState()
       : boardSize = 3,
@@ -359,6 +362,10 @@ class _TicTacToePageState extends State<TicTacToePage> {
   }
 
   void _makeCPUMove() {
+    setState(() {
+      _isCPUMoving = true; // Ustawiamy flagę na true, aby pokazać spinner
+    });
+
     Future.delayed(Duration(seconds: 1), () {
       if (winningCombination.isNotEmpty) return;
 
@@ -394,6 +401,10 @@ class _TicTacToePageState extends State<TicTacToePage> {
       var chosenMove = bestMoves[random.nextInt(bestMoves.length)];
 
       _makeMove(chosenMove['row']!, chosenMove['col']!);
+
+      setState(() {
+        _isCPUMoving = false; // Ustawiamy flagę na false, aby ukryć spinner
+      });
     });
   }
 
@@ -475,77 +486,93 @@ class _TicTacToePageState extends State<TicTacToePage> {
           ),
         ],
       ),
-      body: Column(
+      body: Stack(
+        // Używamy Stack, aby dodać spinner jako overlay
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              '${currentPlayer == 'O' && vsCPU ? 'Ruch komputera' : 'Ruch gracza'}: $currentPlayer',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-          ),
-          Expanded(
-            child: Center(
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(boardSize, (row) {
-                    return Expanded(
-                      child: Row(
-                        children: List.generate(boardSize, (col) {
-                          bool isOldestX = currentPlayer == 'X' &&
-                              movesX.length == maxMovesBeforeDisappear &&
-                              movesX.first.row == row &&
-                              movesX.first.col == col;
-                          bool isOldestO = currentPlayer == 'O' &&
-                              movesO.length == maxMovesBeforeDisappear &&
-                              movesO.first.row == row &&
-                              movesO.first.col == col;
-                          bool isWinning = winningCombination
-                              .any((pos) => pos[0] == row && pos[1] == col);
-                          return Expanded(
-                            child: AspectRatio(
-                              aspectRatio: 1,
-                              child: Container(
-                                margin: EdgeInsets.all(4.0),
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: isWinning
-                                        ? Colors.green
-                                        : board[row][col] != null
-                                            ? (isOldestX || isOldestO)
-                                                ? Colors.red
-                                                : Colors.blue
-                                            : Colors.grey,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8.0),
+          Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  '${currentPlayer == 'O' && vsCPU ? 'Ruch komputera' : 'Ruch gracza'}: $currentPlayer',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ),
+              Expanded(
+                child: Center(
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(boardSize, (row) {
+                        return Expanded(
+                          child: Row(
+                            children: List.generate(boardSize, (col) {
+                              bool isOldestX = currentPlayer == 'X' &&
+                                  movesX.length == maxMovesBeforeDisappear &&
+                                  movesX.first.row == row &&
+                                  movesX.first.col == col;
+                              bool isOldestO = currentPlayer == 'O' &&
+                                  movesO.length == maxMovesBeforeDisappear &&
+                                  movesO.first.row == row &&
+                                  movesO.first.col == col;
+                              bool isWinning = winningCombination
+                                  .any((pos) => pos[0] == row && pos[1] == col);
+                              return Expanded(
+                                child: AspectRatio(
+                                  aspectRatio: 1,
+                                  child: Container(
+                                    margin: EdgeInsets.all(4.0),
+                                    child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: isWinning
+                                            ? Colors.green
+                                            : board[row][col] != null
+                                                ? (isOldestX || isOldestO)
+                                                    ? Colors.red
+                                                    : Colors.blue
+                                                : Colors.grey,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        board[row][col] != null
+                                            ? board[row][col]!
+                                            : '',
+                                        style: TextStyle(fontSize: 32.0),
+                                      ),
+                                      onPressed: () {
+                                        if (!vsCPU ||
+                                            (vsCPU && currentPlayer == 'X')) {
+                                          _makeMove(row, col);
+                                        }
+                                      },
                                     ),
                                   ),
-                                  child: Text(
-                                    board[row][col] != null
-                                        ? board[row][col]!
-                                        : '',
-                                    style: TextStyle(fontSize: 32.0),
-                                  ),
-                                  onPressed: () {
-                                    if (!vsCPU ||
-                                        (vsCPU && currentPlayer == 'X')) {
-                                      _makeMove(row, col);
-                                    }
-                                  },
                                 ),
-                              ),
-                            ),
-                          );
-                        }),
-                      ),
-                    );
-                  }),
+                              );
+                            }),
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (_isCPUMoving) // Dodajemy spinner jako overlay, jeśli _isCPUMoving jest true
+            Container(
+              color: Colors.black.withOpacity(0.1),
+              child: Center(
+                child: SpinKitFadingCube(
+                  color: Colors.white,
+                  size: 50.0,
                 ),
               ),
             ),
-          ),
         ],
       ),
     );
