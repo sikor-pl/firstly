@@ -70,6 +70,17 @@ class _TicTacToePageState extends State<TicTacToePage> {
     });
   }
 
+  void _saveGameState() {
+    gameStateHistory.add(GameState(
+      board: List.generate(boardSize, (i) => List.from(board[i])),
+      movesX: List.from(movesX),
+      movesO: List.from(movesO),
+      currentPlayer: currentPlayer,
+      moves: moves,
+      winningCombination: List.from(winningCombination),
+    ));
+  }
+
   void _openSettingsDialog() {
     showDialog(
       context: context,
@@ -298,6 +309,25 @@ class _TicTacToePageState extends State<TicTacToePage> {
     });
   }
 
+  void _undoMove() {
+    if (gameStateHistory.isEmpty) return;
+
+    var previousState = gameStateHistory.removeLast();
+
+    if (vsCPU) {
+      previousState = gameStateHistory.removeLast();
+    }
+
+    setState(() {
+      board = previousState.board;
+      movesX = previousState.movesX;
+      movesO = previousState.movesO;
+      currentPlayer = previousState.currentPlayer;
+      moves = previousState.moves;
+      winningCombination = previousState.winningCombination;
+    });
+  }
+
   bool _checkWinner(int row, int col, String player) {
     int count = 0;
 
@@ -502,6 +532,10 @@ class _TicTacToePageState extends State<TicTacToePage> {
         title: Text('Kółko i krzyżyk'),
         actions: [
           IconButton(
+            icon: Icon(Icons.undo),
+            onPressed: _undoMove,
+          ),
+          IconButton(
             icon: Icon(Icons.refresh),
             onPressed: _resetGame,
           ),
@@ -641,4 +675,22 @@ class Move {
   final String player;
 
   Move(this.row, this.col, this.player);
+}
+
+class GameState {
+  final List<List<String?>> board;
+  final List<Move> movesX;
+  final List<Move> movesO;
+  final String currentPlayer;
+  final int moves;
+  final List<List<int>> winningCombination;
+
+  GameState({
+    required this.board,
+    required this.movesX,
+    required this.movesO,
+    required this.currentPlayer,
+    required this.moves,
+    required this.winningCombination,
+  });
 }
