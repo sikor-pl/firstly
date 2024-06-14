@@ -37,6 +37,8 @@ class _TicTacToePageState extends State<TicTacToePage> {
   bool _isCPUMoving = false;
   bool _twoOldestMoves = false;
 
+  List<GameState> gameStateHistory;
+
   _TicTacToePageState()
       : boardSize = 3,
         winCondition = 3,
@@ -50,7 +52,8 @@ class _TicTacToePageState extends State<TicTacToePage> {
         vsCPU = false,
         cpuFirst = false,
         maxDepth = 5,
-        cpuDifficulty = 0;
+        cpuDifficulty = 0,
+        gameStateHistory = [];
 
   void _resetGame() {
     setState(() {
@@ -60,6 +63,7 @@ class _TicTacToePageState extends State<TicTacToePage> {
       movesO.clear();
       winningCombination = [];
       moves = 0;
+      gameStateHistory.clear();
       if (vsCPU && cpuFirst) {
         _makeCPUMove();
       }
@@ -261,6 +265,8 @@ class _TicTacToePageState extends State<TicTacToePage> {
 
   void _makeMove(int row, int col) {
     if (board[row][col] != null || winningCombination.isNotEmpty) return;
+
+    _saveGameState();
 
     setState(() {
       if (currentPlayer == 'X' && movesX.length == maxMovesBeforeDisappear) {
