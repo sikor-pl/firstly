@@ -418,7 +418,7 @@ class _TicTacToePageState extends State<TicTacToePage> {
 
   void _makeCPUMove() {
     setState(() {
-      _isCPUMoving = true; // Ustawiamy flagę na true, aby pokazać spinner
+      _isCPUMoving = true;
     });
 
     Future.delayed(Duration(seconds: 1), () {
@@ -426,6 +426,7 @@ class _TicTacToePageState extends State<TicTacToePage> {
 
       int bestScore = -1000;
       List<Map<String, int>> bestMoves = [];
+      print(board);
 
       for (int i = 0; i < boardSize; i++) {
         for (int j = 0; j < boardSize; j++) {
@@ -433,34 +434,58 @@ class _TicTacToePageState extends State<TicTacToePage> {
             board[i][j] = 'O';
             int score = _minimax(board, 0, false);
             board[i][j] = null;
-            if (score > bestScore) {
+            if ((score > bestScore) && (board[i][j] == null)) {
               bestScore = score;
               bestMoves = [
                 {'row': i, 'col': j, 'score': score}
               ];
-            } else if (score == bestScore) {
+            } else if ((score == bestScore) && (board[i][j] == null)) {
               bestMoves.add({'row': i, 'col': j, 'score': score});
             }
           }
         }
       }
 
-      // Sort the best moves by score and keep only the top 2
+      // Sortowanie ruchów od najwyższego do najniższego score
       bestMoves.sort((a, b) => b['score']!.compareTo(a['score']!));
-      if (bestMoves.length > 2) {
-        bestMoves = bestMoves.sublist(0, 2);
+
+      // Wybór ruchów zależnie od poziomu trudności
+      List<Map<String, int>> chosenMoves;
+      if (cpuDifficulty == 1) {
+        // Poziom trudny: wybieraj losowo z ruchów o najwyższym score
+        int highestScore = bestMoves.first['score']!;
+        chosenMoves =
+            bestMoves.where((move) => move['score'] == highestScore).toList();
+      } else {
+        // Poziom łatwy: wybieraj losowo z ruchów o dwóch najwyższych score
+        Set<int> topScores =
+            bestMoves.map((move) => move['score']!).toSet().take(2).toSet();
+        chosenMoves = bestMoves
+            .where((move) => topScores.contains(move['score']))
+            .toList();
       }
 
-      // Choose a random move from the top 3
+      print(bestMoves);
       var random = Random();
-      var chosenMove = bestMoves[random.nextInt(bestMoves.length)];
+      var chosenMove = chosenMoves[random.nextInt(chosenMoves.length)];
 
       _makeMove(chosenMove['row']!, chosenMove['col']!);
 
       setState(() {
-        _isCPUMoving = false; // Ustawiamy flagę na false, aby ukryć spinner
+        _isCPUMoving = false;
       });
     });
+  }
+
+  void _removeOldestMove(List<List<String?>> board) {
+    if (currentPlayer == 'X' && movesX.length == maxMovesBeforeDisappear) {
+      final oldestMove = movesX.removeAt(0);
+      board[oldestMove.row][oldestMove.col] = null;
+    } else if (currentPlayer == 'O' &&
+        movesO.length == maxMovesBeforeDisappear) {
+      final oldestMove = movesO.removeAt(0);
+      board[oldestMove.row][oldestMove.col] = null;
+    }
   }
 
   int _minimax(List<List<String?>> board, int depth, bool isMaximizing) {
@@ -468,6 +493,11 @@ class _TicTacToePageState extends State<TicTacToePage> {
     if (_checkWinnerHelper('X')) return depth - 10;
     if (board.every((row) => row.every((cell) => cell != null)) ||
         depth >= maxDepth) return 0;
+
+    // Uwzględnianie znikających ruchów
+    if (depth == 0) {
+      _removeOldestMove(board);
+    }
 
     if (isMaximizing) {
       int bestScore = -1000;
