@@ -1,11 +1,11 @@
 {
-    "name": "firstly",
-    "short_name": "firstly",
+    "name": "TicTacGo",
+    "short_name": "TicTacGo",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "TicTacGo",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

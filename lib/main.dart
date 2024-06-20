@@ -49,10 +49,10 @@ class _TicTacToePageState extends State<TicTacToePage> {
         movesO = [],
         winningCombination = [],
         moves = 0,
-        vsCPU = false,
+        vsCPU = true,
         cpuFirst = false,
         maxDepth = 5,
-        cpuDifficulty = 0,
+        cpuDifficulty = 1,
         gameStateHistory = [];
 
   void _resetGame() {
@@ -115,13 +115,11 @@ class _TicTacToePageState extends State<TicTacToePage> {
                           tempWinCondition = 3;
                           tempMaxMovesBeforeDisappear = 3;
                         } else if (tempBoardSize == 4) {
-                          if (tempWinCondition > 4) tempWinCondition = 4;
-                          if (tempMaxMovesBeforeDisappear > 6)
-                            tempMaxMovesBeforeDisappear = 6;
+                          tempWinCondition = 3;
+                          tempMaxMovesBeforeDisappear = 3;
                         } else if (tempBoardSize == 5) {
-                          if (tempWinCondition > 5) tempWinCondition = 5;
-                          if (tempMaxMovesBeforeDisappear > 8)
-                            tempMaxMovesBeforeDisappear = 8;
+                          tempWinCondition = 4;
+                          tempMaxMovesBeforeDisappear = 6;
                         }
                       });
                     },
@@ -205,6 +203,10 @@ class _TicTacToePageState extends State<TicTacToePage> {
                               value: 1,
                               child: Text('Trudny'),
                             ),
+                            DropdownMenuItem<int>(
+                              value: 2,
+                              child: Text('Extra!'),
+                            ),
                           ],
                           onChanged: (newValue) {
                             setState(() {
@@ -243,15 +245,19 @@ class _TicTacToePageState extends State<TicTacToePage> {
                       _twoOldestMoves = tempTwoOldestMoves;
                       if (boardSize == 5) {
                         if (cpuDifficulty == 0) {
-                          maxDepth = 2; // Easy mode
-                        } else {
+                          maxDepth = 3; // Easy mode
+                        } else if (cpuDifficulty == 1) {
                           maxDepth = 4; // Hard mode
+                        } else {
+                          maxDepth = 5; // Extra mode
                         }
                       } else {
                         if (cpuDifficulty == 0) {
                           maxDepth = 3; // Easy mode
-                        } else {
+                        } else if (cpuDifficulty == 1) {
                           maxDepth = 5; // Hard mode
+                        } else {
+                          maxDepth = 7; // Extra mode
                         }
                       }
                       _resetGame();
@@ -431,6 +437,9 @@ class _TicTacToePageState extends State<TicTacToePage> {
       for (int i = 0; i < boardSize; i++) {
         for (int j = 0; j < boardSize; j++) {
           if (board[i][j] == null) {
+            // Sprawdzenie znikającego ruchu
+            _removeOldestMove(board);
+
             board[i][j] = 'O';
             int score = _minimax(board, 0, false);
             board[i][j] = null;
@@ -451,7 +460,7 @@ class _TicTacToePageState extends State<TicTacToePage> {
 
       // Wybór ruchów zależnie od poziomu trudności
       List<Map<String, int>> chosenMoves;
-      if (cpuDifficulty == 1) {
+      if (cpuDifficulty > 0) {
         // Poziom trudny: wybieraj losowo z ruchów o najwyższym score
         int highestScore = bestMoves.first['score']!;
         chosenMoves =
@@ -495,9 +504,7 @@ class _TicTacToePageState extends State<TicTacToePage> {
         depth >= maxDepth) return 0;
 
     // Uwzględnianie znikających ruchów
-    if (depth == 0) {
-      _removeOldestMove(board);
-    }
+    _removeOldestMove(board);
 
     if (isMaximizing) {
       int bestScore = -1000;
