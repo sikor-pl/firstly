@@ -438,7 +438,7 @@ class _TicTacToePageState extends State<TicTacToePage> {
         for (int j = 0; j < boardSize; j++) {
           if (board[i][j] == null) {
             // Sprawdzenie znikającego ruchu
-            _removeOldestMove(board);
+            // _removeOldestMove(board);
 
             board[i][j] = 'O';
             int score = _minimax(board, 0, false);
